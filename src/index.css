@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap');
+@import 'tailwindcss';
+
+:root {
+  color: #15253f;
+  font-family: Manrope, 'Segoe UI', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(148, 178, 217, 0.55), transparent 38%),
+    radial-gradient(circle at 85% 8%, rgba(143, 169, 207, 0.5), transparent 35%),
+    linear-gradient(180deg, #deebf8 0%, #c8d9eb 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.glass-card {
+  background: rgba(247, 250, 254, 0.86);
+  box-shadow: 0 16px 40px rgba(28, 61, 102, 0.14);
+  backdrop-filter: blur(4px);
+}
+
+.option-enter {
+  animation: rise 240ms ease-out;
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
