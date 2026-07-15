@@ -27,13 +27,7 @@
     { "id": "r1_13", "type": "multiple-choice", "prompt": "Какой сегодня день после понедельника?", "options": ["Среда", "Вторник", "Пятница", "Воскресенье"], "answerIndex": 1 },
     { "id": "r1_14", "type": "multiple-choice", "prompt": "Выберите правильный ответ: Где ты живёшь?", "options": ["Меня зовут Анна.", "Мне 20 лет.", "Я живу в Ташкенте.", "Я студент."], "answerIndex": 2 },
     { "id": "r1_15", "type": "multiple-choice", "prompt": "Выберите правильную форму: Они ___ в школе.", "options": ["учится", "учатся", "учусь", "учишься"], "answerIndex": 1 },
-
-    { "id": "r1_n1", "type": "note-completion", "prompt": "Заполните пропуск: «Здравствуйте! Меня ___ Иван.»", "answer": "зовут", "acceptableAnswers": ["зовут"] },
-    { "id": "r1_n2", "type": "note-completion", "prompt": "Заполните пропуск: «Я живу ___ Москве.»", "answer": "в", "acceptableAnswers": ["в", "во"] },
-    { "id": "r1_n3", "type": "note-completion", "prompt": "Заполните пропуск: «В неделе семь ___.»", "answer": "дней", "acceptableAnswers": ["дней"] },
-    { "id": "r1_n4", "type": "note-completion", "prompt": "Заполните пропуск: «Кошка сидит ___ столе.»", "answer": "на", "acceptableAnswers": ["на"] },
-    { "id": "r1_n5", "type": "note-completion", "prompt": "Заполните пропуск: «Сегодня понедельник, а завтра ___.»", "answer": "вторник", "acceptableAnswers": ["вторник"] },
-
+    
     { "id": "r1_s1", "type": "short-text", "prompt": "Напишите своё имя." },
     { "id": "r1_s2", "type": "short-text", "prompt": "Сколько вам лет?" },
     { "id": "r1_s3", "type": "short-text", "prompt": "Где вы живёте?" },
