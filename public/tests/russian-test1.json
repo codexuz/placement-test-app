@@ -1,0 +1,43 @@
+{
+  "id": "russian-test1",
+  "title": "Тест по русскому языку (А1)",
+  "shortTitle": "Русский A1",
+  "description": "Russian A1 placement test: multiple choice, note completion, and short open questions.",
+  "sourceDoc": "сабрина.docx",
+  "timeLimitMinutes": 30,
+  "instructions": [
+    "Внимательно прочитайте каждое задание перед ответом.",
+    "За неправильные ответы баллы не снимаются.",
+    "Открытые ответы будут отправлены преподавателю на проверку.",
+    "После перехода к следующему вопросу вернуться нельзя."
+  ],
+  "questions": [
+    { "id": "r1_1", "type": "multiple-choice", "prompt": "Выберите правильное местоимение: ___ студенты.", "options": ["Я", "Ты", "Он", "Они"], "answerIndex": 3 },
+    { "id": "r1_2", "type": "multiple-choice", "prompt": "Выберите правильную форму глагола: Она ___ книгу.", "options": ["читать", "читает", "читаю", "читаешь"], "answerIndex": 1 },
+    { "id": "r1_3", "type": "multiple-choice", "prompt": "Выберите правильный предлог: Книга лежит ___ столе.", "options": ["в", "на", "под", "за"], "answerIndex": 1 },
+    { "id": "r1_4", "type": "multiple-choice", "prompt": "Выберите множественное число.", "options": ["дом", "дома", "дому", "домом"], "answerIndex": 1 },
+    { "id": "r1_5", "type": "multiple-choice", "prompt": "Найдите лишнее слово.", "options": ["яблоко", "груша", "банан", "стол"], "answerIndex": 3 },
+    { "id": "r1_6", "type": "multiple-choice", "prompt": "Выберите правильный вопрос: ___ тебя зовут?", "options": ["Кто", "Что", "Как", "Где"], "answerIndex": 2 },
+    { "id": "r1_7", "type": "multiple-choice", "prompt": "Выберите правильное слово: Зимой очень ___.", "options": ["жарко", "холодно", "тепло", "весело"], "answerIndex": 1 },
+    { "id": "r1_8", "type": "multiple-choice", "prompt": "Выберите правильную форму: Мы ___ дома.", "options": ["живёт", "живут", "живём", "живёшь"], "answerIndex": 2 },
+    { "id": "r1_9", "type": "multiple-choice", "prompt": "Выберите правильное прилагательное: Это ___ машина.", "options": ["красный", "красная", "красное", "красные"], "answerIndex": 1 },
+    { "id": "r1_10", "type": "multiple-choice", "prompt": "Сколько дней в неделе?", "options": ["5", "6", "7", "8"], "answerIndex": 2 },
+    { "id": "r1_11", "type": "multiple-choice", "prompt": "Выберите правильное слово: Утром мы ___ чай.", "options": ["пьём", "едим", "спим", "гуляем"], "answerIndex": 0 },
+    { "id": "r1_12", "type": "multiple-choice", "prompt": "Выберите правильное окончание: У меня есть две ___.", "options": ["книга", "книги", "книг", "книжка"], "answerIndex": 1 },
+    { "id": "r1_13", "type": "multiple-choice", "prompt": "Какой сегодня день после понедельника?", "options": ["Среда", "Вторник", "Пятница", "Воскресенье"], "answerIndex": 1 },
+    { "id": "r1_14", "type": "multiple-choice", "prompt": "Выберите правильный ответ: Где ты живёшь?", "options": ["Меня зовут Анна.", "Мне 20 лет.", "Я живу в Ташкенте.", "Я студент."], "answerIndex": 2 },
+    { "id": "r1_15", "type": "multiple-choice", "prompt": "Выберите правильную форму: Они ___ в школе.", "options": ["учится", "учатся", "учусь", "учишься"], "answerIndex": 1 },
+
+    { "id": "r1_n1", "type": "note-completion", "prompt": "Заполните пропуск: «Здравствуйте! Меня ___ Иван.»", "answer": "зовут", "acceptableAnswers": ["зовут"] },
+    { "id": "r1_n2", "type": "note-completion", "prompt": "Заполните пропуск: «Я живу ___ Москве.»", "answer": "в", "acceptableAnswers": ["в", "во"] },
+    { "id": "r1_n3", "type": "note-completion", "prompt": "Заполните пропуск: «В неделе семь ___.»", "answer": "дней", "acceptableAnswers": ["дней"] },
+    { "id": "r1_n4", "type": "note-completion", "prompt": "Заполните пропуск: «Кошка сидит ___ столе.»", "answer": "на", "acceptableAnswers": ["на"] },
+    { "id": "r1_n5", "type": "note-completion", "prompt": "Заполните пропуск: «Сегодня понедельник, а завтра ___.»", "answer": "вторник", "acceptableAnswers": ["вторник"] },
+
+    { "id": "r1_s1", "type": "short-text", "prompt": "Напишите своё имя." },
+    { "id": "r1_s2", "type": "short-text", "prompt": "Сколько вам лет?" },
+    { "id": "r1_s3", "type": "short-text", "prompt": "Где вы живёте?" },
+    { "id": "r1_s4", "type": "short-text", "prompt": "Составьте предложение со словом «школа»." },
+    { "id": "r1_s5", "type": "short-text", "prompt": "Напишите 5 слов на тему «Семья»." }
+  ]
+}

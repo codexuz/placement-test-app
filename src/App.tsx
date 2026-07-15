@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 
-type LevelId = 'kids' | 'level1' | 'level2'
+type LevelId = 'kids' | 'level1' | 'level2' | 'russian-test1'
 type Phase = 'select' | 'intro' | 'quiz' | 'result'
+type QuestionType = 'multiple-choice' | 'note-completion' | 'short-text'
 
 interface Question {
   id: string
+  type?: QuestionType
   prompt: string
-  options: string[]
-  answerIndex: number
+  options?: string[]
+  answerIndex?: number
+  answer?: string
+  acceptableAnswers?: string[]
 }
 
 interface TestLevel {
@@ -21,6 +25,11 @@ interface TestLevel {
   questions: Question[]
 }
 
+interface OpenAnswer {
+  prompt: string
+  response: string
+}
+
 interface ResultPayload {
   candidate: string
   level: string
@@ -28,18 +37,53 @@ interface ResultPayload {
   total: number
   percentage: number
   finishedAt: string
+  openAnswers: OpenAnswer[]
 }
 
 const levelFiles: Record<LevelId, string> = {
   kids: '/tests/kids.json',
   level1: '/tests/level1.json',
   level2: '/tests/level2.json',
+  'russian-test1': '/tests/russian-test1.json',
 }
 
 const levelDescriptions: Record<LevelId, string> = {
   kids: 'Vocabulary and basic grammar for younger learners.',
   level1: 'Core grammar and sentence structure for pre-intermediate students.',
   level2: 'Advanced grammar, structure, and context understanding.',
+  'russian-test1': 'Russian A1 test with multiple choice, note completion, and open questions.',
+}
+
+function getQuestionType(question: Question): QuestionType {
+  return question.type ?? 'multiple-choice'
+}
+
+function normalizeText(value: string): string {
+  return value.trim().toLowerCase().replace(/ё/g, 'е').replace(/[.,!?;:"«»]/g, '').replace(/\s+/g, ' ')
+}
+
+function isGradable(question: Question): boolean {
+  const type = getQuestionType(question)
+  return type === 'multiple-choice' || type === 'note-completion'
+}
+
+function isQuestionCorrect(question: Question, answer: number | string | undefined): boolean {
+  const type = getQuestionType(question)
+  if (type === 'multiple-choice') {
+    return typeof answer === 'number' && answer === question.answerIndex
+  }
+  if (type === 'note-completion') {
+    if (typeof answer !== 'string' || !answer.trim()) {
+      return false
+    }
+    const accepted = question.acceptableAnswers?.length
+      ? question.acceptableAnswers
+      : question.answer
+        ? [question.answer]
+        : []
+    return accepted.some((candidate) => normalizeText(candidate) === normalizeText(answer))
+  }
+  return false
 }
 
 const fallbackInstructions = [
@@ -87,6 +131,13 @@ async function sendTelegramResult(payload: ResultPayload): Promise<void> {
     `⏱️ Completed: ${payload.finishedAt}`,
   ]
 
+  if (payload.openAnswers.length > 0) {
+    lines.push('', '✍️ *Open answers:*')
+    payload.openAnswers.forEach((item, index) => {
+      lines.push(`${index + 1}. ${item.prompt}`, `➡️ ${item.response || '—'}`)
+    })
+  }
+
   const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -108,7 +159,7 @@ function App() {
   const [selectedLevel, setSelectedLevel] = useState<LevelId | null>(null)
   const [candidateName, setCandidateName] = useState('')
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, number>>({})
+  const [answers, setAnswers] = useState<Record<string, number | string>>({})
   const [remainingSeconds, setRemainingSeconds] = useState(0)
   const [loadError, setLoadError] = useState('')
   const [telegramStatus, setTelegramStatus] = useState('')
@@ -119,14 +170,15 @@ function App() {
     let mounted = true
     void (async () => {
       try {
-        const [kids, level1, level2] = await Promise.all([
+        const [kids, level1, level2, russianTest1] = await Promise.all([
           loadLevel('kids'),
           loadLevel('level1'),
           loadLevel('level2'),
+          loadLevel('russian-test1'),
         ])
 
         if (mounted) {
-          setLevels({ kids, level1, level2 })
+          setLevels({ kids, level1, level2, 'russian-test1': russianTest1 })
         }
       } catch (error) {
         if (mounted) {
@@ -162,18 +214,19 @@ function App() {
     return () => clearInterval(timer)
   }, [phase, remainingSeconds])
 
+  const gradableQuestions = useMemo(
+    () => (levelData ? levelData.questions.filter(isGradable) : []),
+    [levelData],
+  )
+
   const score = useMemo(() => {
-    if (!levelData) {
-      return 0
-    }
-
-    return levelData.questions.reduce((total, question) => {
-      return answers[question.id] === question.answerIndex ? total + 1 : total
+    return gradableQuestions.reduce((total, question) => {
+      return isQuestionCorrect(question, answers[question.id]) ? total + 1 : total
     }, 0)
-  }, [answers, levelData])
+  }, [answers, gradableQuestions])
 
-  const percentage = levelData
-    ? Math.round((score / Math.max(levelData.questions.length, 1)) * 100)
+  const percentage = gradableQuestions.length
+    ? Math.round((score / gradableQuestions.length) * 100)
     : 0
 
   const canStart = Boolean(selectedLevel && candidateName.trim().length >= 2)
@@ -208,6 +261,23 @@ function App() {
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: index }))
   }
 
+  function setTextAnswer(value: string): void {
+    if (!currentQuestion) {
+      return
+    }
+
+    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }))
+  }
+
+  const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined
+  const currentType = currentQuestion ? getQuestionType(currentQuestion) : 'multiple-choice'
+  const isCurrentAnswered =
+    currentType === 'multiple-choice'
+      ? typeof currentAnswer === 'number'
+      : currentType === 'short-text'
+        ? true
+        : typeof currentAnswer === 'string' && currentAnswer.trim().length > 0
+
   function goNext(): void {
     if (!levelData || !currentQuestion) {
       return
@@ -230,14 +300,25 @@ function App() {
     setSendingToTelegram(true)
     setTelegramStatus('Sending result to Telegram...')
 
+    const openAnswers: OpenAnswer[] = levelData.questions
+      .filter((question) => getQuestionType(question) === 'short-text')
+      .map((question) => {
+        const response = answers[question.id]
+        return {
+          prompt: question.prompt,
+          response: typeof response === 'string' ? response.trim() : '',
+        }
+      })
+
     try {
       await sendTelegramResult({
         candidate: candidateName.trim(),
         level: levelData.title,
         score,
-        total: levelData.questions.length,
+        total: gradableQuestions.length,
         percentage,
         finishedAt: new Date().toLocaleString(),
+        openAnswers,
       })
       setTelegramStatus('Result sent to Telegram successfully.')
     } catch (error) {
@@ -411,37 +492,72 @@ function App() {
                 </span>
               </div>
 
+              <div className="mb-4 inline-flex rounded-full bg-slate-200 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-600">
+                {currentType === 'multiple-choice'
+                  ? 'Multiple choice'
+                  : currentType === 'note-completion'
+                    ? 'Note completion'
+                    : 'Open answer'}
+              </div>
+
               <h3 className="mb-5 text-xl font-bold text-slate-900">{currentQuestion.prompt}</h3>
 
-              <div className="space-y-2">
-                {currentQuestion.options.map((option, index) => {
-                  const selected = answers[currentQuestion.id] === index
-                  return (
-                    <button
-                      key={`${currentQuestion.id}-${option}`}
-                      type="button"
-                      onClick={() => chooseAnswer(index)}
-                      className={`option-enter flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition ${
-                        selected
-                          ? 'border-blue-500 bg-blue-50 text-blue-900'
-                          : 'border-slate-200 bg-slate-100/80 text-slate-700 hover:border-blue-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-5 w-5 rounded-full border-2 ${
-                          selected ? 'border-blue-600 bg-blue-600' : 'border-slate-400'
+              {currentType === 'multiple-choice' && (
+                <div className="space-y-2">
+                  {(currentQuestion.options ?? []).map((option, index) => {
+                    const selected = answers[currentQuestion.id] === index
+                    return (
+                      <button
+                        key={`${currentQuestion.id}-${option}`}
+                        type="button"
+                        onClick={() => chooseAnswer(index)}
+                        className={`option-enter flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition ${
+                          selected
+                            ? 'border-blue-500 bg-blue-50 text-blue-900'
+                            : 'border-slate-200 bg-slate-100/80 text-slate-700 hover:border-blue-300'
                         }`}
-                      />
-                      <span className="text-base">{option}</span>
-                    </button>
-                  )
-                })}
-              </div>
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 rounded-full border-2 ${
+                            selected ? 'border-blue-600 bg-blue-600' : 'border-slate-400'
+                          }`}
+                        />
+                        <span className="text-base">{option}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {currentType === 'note-completion' && (
+                <input
+                  type="text"
+                  value={typeof currentAnswer === 'string' ? currentAnswer : ''}
+                  onChange={(event) => setTextAnswer(event.target.value)}
+                  placeholder="Введите слово в пропуск"
+                  className="w-full rounded-xl border border-slate-300 bg-white/90 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
+              )}
+
+              {currentType === 'short-text' && (
+                <>
+                  <textarea
+                    value={typeof currentAnswer === 'string' ? currentAnswer : ''}
+                    onChange={(event) => setTextAnswer(event.target.value)}
+                    placeholder="Напишите свой ответ"
+                    rows={4}
+                    className="w-full resize-y rounded-xl border border-slate-300 bg-white/90 px-4 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  />
+                  <p className="mt-2 text-xs text-slate-500">
+                    Открытые ответы отправляются преподавателю в Telegram и не оцениваются автоматически.
+                  </p>
+                </>
+              )}
             </div>
 
             <button
               type="button"
-              disabled={answers[currentQuestion.id] === undefined}
+              disabled={!isCurrentAnswered}
               onClick={goNext}
               className="rounded-full bg-blue-500 px-9 py-3 font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-blue-300"
             >
@@ -467,7 +583,7 @@ function App() {
               </div>
               <div className="rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-center">
                 <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Total</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">{levelData.questions.length}</p>
+                <p className="mt-1 text-2xl font-extrabold text-slate-900">{gradableQuestions.length}</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-center">
                 <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Percent</p>
